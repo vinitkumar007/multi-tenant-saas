@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: multi-tenant-saas
+
+  datasource:
+    # Master DB — jahan tenants, users, subscriptions store honge
+    master:
+      url: jdbc:postgresql://localhost:5432/saas_master
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 2
+        connection-timeout: 30000
+
+    # Template — naye tenant ke liye iska schema_name replace karke datasource banega
+    # (actual URL runtime pe build hoga)
+    tenant-template:
+      url: jdbc:postgresql://localhost:5432/saas_tenant_{schema}
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate       # Flyway handle karega schema
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: false            # Manual trigger karenge per-tenant
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+app:
+  jwt:
+    secret: "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_64_CHARS_FOR_HS512_SECURITY_PLEASE_1234567890ABCDEF"
+    access-token-ttl-minutes: 15
+    refresh-token-ttl-days: 7
+  cors:
+    allowed-origins: "http://localhost:3000"
+  security:
+    bcrypt-strength: 12
+
+logging:
+  level:
+    com.saas: DEBUG
+    org.hibernate.SQL: INFO
